@@ -1,0 +1,17 @@
+{
+  "name": "brackets-http-server",
+  "title": "Http Server for Brackets",
+  "version": "0.1.0",
+  "description": "Starts an http server on port 8989 at the project root and launches the selected file",
+  "homepage": "https://github.com/smiclea/brackets-http-server",
+  "author": "Sergiu Miclea <miclea.sergiu@gmail.com> (https://github.com/smiclea)",
+  "license": "MIT",
+  "categories": "general",
+  "keywords": [
+    "grunt",
+    "task"
+  ],
+  "engines": {
+    "brackets": ">=0.32.0"
+  }
+}

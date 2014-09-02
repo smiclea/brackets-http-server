@@ -1,0 +1,8 @@
+#custom-server-icon {
+    background: url(server_icon.png);
+    background-position: 3px;
+}
+
+#custom-server-icon.disabled {
+    opacity: 0.3;
+}

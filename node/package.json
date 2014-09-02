@@ -1,0 +1,8 @@
+{
+  "engines": {
+    "brackets": ">=32"
+  },
+  "devDependencies": {
+    "http-server": "~0.6.1"
+  }
+}
