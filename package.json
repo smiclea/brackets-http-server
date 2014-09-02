@@ -8,8 +8,8 @@
   "license": "MIT",
   "categories": "general",
   "keywords": [
-    "grunt",
-    "task"
+    "http-server",
+    "server"
   ],
   "engines": {
     "brackets": ">=0.32.0"
