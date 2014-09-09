@@ -13,7 +13,7 @@ define(function (require, exports, module) {
         ProjectManager = brackets.getModule("project/ProjectManager");
     
     var PORT = '8989';
-    var START_SHORTCUT = 'Ctrl-Alt-H';
+    var START_SHORTCUT = 'Ctrl-Alt-T';
     
     var nodeConnection = new NodeConnection();
     var icon, rootPath;
@@ -81,7 +81,7 @@ define(function (require, exports, module) {
     AppInit.appReady(function () {
         ExtensionUtils.loadStyleSheet(module, "assets/style.css");
         
-        icon = $("<a id='custom-server-icon' href='#'></a>").attr("title", "Custom Server").appendTo($("#main-toolbar .buttons"));
+        icon = $("<a id='custom-server-icon' href='#'></a>").attr("title", "Start HTTP Server (" + START_SHORTCUT + ")").appendTo($("#main-toolbar .buttons"));
         icon.addClass('disabled');
         
         connect().done(function () {
