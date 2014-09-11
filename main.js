@@ -67,7 +67,7 @@ define(function (require, exports, module) {
             if (msg === 'success') {
                 openSelectedFile();
             } else {
-                console.log('[brackets-http-server] ', msg);
+                console.log('[brackets-http-server] Process start error. Try closing brackets and ending the node.exe process in Windows Task Manager. ', msg);
             }
         });
     };
@@ -78,6 +78,13 @@ define(function (require, exports, module) {
         KeyBindingManager.addBinding(START_COMMAND_ID, START_SHORTCUT);
     };
     
+	var addCloseListener = function () {
+		$(ProjectManager).on('beforeAppClose', function () {
+			console.log('Killing server process');
+			nodeConnection.domains['http-server'].kill(function () {});
+		});
+	};
+	
     AppInit.appReady(function () {
         ExtensionUtils.loadStyleSheet(module, "assets/style.css");
         
@@ -89,6 +96,7 @@ define(function (require, exports, module) {
                 icon.removeClass('disabled');
                 icon.on("click", startServer);
                 addKeyBinding();
+				addCloseListener();
             });
         });
     });

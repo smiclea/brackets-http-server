@@ -5,14 +5,13 @@
 
     "use strict";
 
-    var _domainManager = null;
     var child;
     
-    var killExistingChild = function (callback) {
+    var killServerProcess = function (callback) {
         if (!child) {
             callback();
-            return;
         }
+		
         var exec = require('child_process').exec;
         
         exec('taskkill /PID ' + child.pid + ' /T /F', function (error, stdout, stderr) {
@@ -26,7 +25,7 @@
             cmd = rootPath + 'node/node_modules/.bin/http-server -c-1 -p ' + port + ' ' + path,
             output = '';
         
-        killExistingChild(function () {
+		killServerProcess(function () {
             child = exec(cmd, function (error, stdout, stderr) {
                 if (error) {
                     callback(stderr);
@@ -48,25 +47,30 @@
      *
      */
     function init(domainManager) {
-        _domainManager = domainManager;
-
-        if (!_domainManager.hasDomain("http-server")) {
-            _domainManager.registerDomain("http-server", {major: 0, minor: 1});
+		if (!domainManager.hasDomain("http-server")) {
+			domainManager.registerDomain("http-server", {major: 0, minor: 1});
         }
 
-        _domainManager.registerCommand(
+		domainManager.registerCommand(
             "http-server",
             "start",
             start,
             true
         );
         
-        _domainManager.registerCommand(
+		domainManager.registerCommand(
             "http-server",
             "open",
             open,
             true
         );
+		
+		domainManager.registerCommand(
+			"http-server",
+			"kill",
+			killServerProcess,
+			true
+		);
     }
 
     exports.init = init;
