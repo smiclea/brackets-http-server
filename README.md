@@ -1,13 +1,11 @@
 brackets-http-server
 ====================
 
-Starts http-server node module on port 8989 at the project root and launches the selected file. Click the server icon on the right panel or Ctrl-Alt-T to start the server (if not already started) and launch the file.
+Launches an http-server module (http://127.0.0.1:8989) at project root (if not already launched) and opens the selected file in a new browser tab. The server closes when closing Brackets.
 
-This extension is useful if you don't want to use Bracket's Live Preview feature. Instead of launching the file in a new browser window, this extension opens a new tab in the current browser's window.
+Changing projects is supported and causes the server to simply relaunch at the new project's root.
 
-Navigating to http://127.0.0.1:8989 after the server was started will always return the root project.
-
-You are able to change the projects and if you change the project and launch a file from the new project, the server will restart setting the new project's path as the server's root.
+This is useful if you don't use Brackets' Live Preview, i.e. Live Preview, because of its features, starts way slower and always opens a new browser window.
 
 <b>Changelog</b>
 
