@@ -24,12 +24,16 @@
         var exec = require('child_process').exec,
             cmd = rootPath + 'node/node_modules/.bin/http-server -c-1 -p ' + port + ' ' + path,
             output = '';
-        
+
 		killServerProcess(function () {
             child = exec(cmd, function (error, stdout, stderr) {
                 if (error) {
                     callback(stderr);
                 }
+				
+				if (stdout) {
+					callback(stdout);
+				}
             });
 
             child.stdout.on("data", function (data) {

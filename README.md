@@ -9,6 +9,11 @@ This is useful if you don't use Brackets' Live Preview, i.e. Live Preview, becau
 
 <b>Changelog</b>
 
+<i>1.0.2</i>
+<ul>
+<li>Fixed: selected file doesn't launch when pressing for the first time the start server button</li>
+</ul>
+
 <i>1.0.1</i>
 <ul>
 <li>First stable release</li>

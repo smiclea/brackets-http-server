@@ -56,7 +56,7 @@ define(function (require, exports, module) {
     var startServer = function () {
         var newRootPath = ProjectManager.getProjectRoot().fullPath;
         
-        if (newRootPath === rootPath) {
+        if (rootPath && newRootPath === rootPath) {
             openSelectedFile();
             return;
         }
@@ -64,12 +64,14 @@ define(function (require, exports, module) {
         rootPath = newRootPath;
         
         nodeConnection.domains['http-server'].start(rootPath, PORT, ExtensionUtils.getModulePath(module)).fail(function (msg) {
-            if (msg === 'success') {
+            if (msg === 'success') { // used fail for success because the domain doesn't support promises
                 openSelectedFile();
             } else {
-                console.log('[brackets-http-server] Process start error. Try closing brackets and ending the node.exe process in Windows Task Manager. ', msg);
+                console.log('[brackets-http-server] Process start error. ', msg);
             }
-        });
+        }).done(function (msg) {
+			openSelectedFile();
+		});
     };
     
     var addKeyBinding = function () {
@@ -80,7 +82,6 @@ define(function (require, exports, module) {
     
 	var addCloseListener = function () {
 		$(ProjectManager).on('beforeAppClose', function () {
-			console.log('Killing server process');
 			nodeConnection.domains['http-server'].kill(function () {});
 		});
 	};
