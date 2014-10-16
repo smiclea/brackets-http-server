@@ -7,7 +7,14 @@ Changing projects is supported and causes the server to simply relaunch at the n
 
 This is useful if you don't use Brackets' Live Preview, i.e. Live Preview, because of its features, starts way slower and always opens a new browser window.
 
+You can now also set a html file as a startup for a project, just right click the file and select 'Set file as startup for HTTP Server'. With this, every time you start the server for that project, the startup file will always open. To remove a file as startup, right click the file and select 'Remove file as startup for HTTP Server'. Setting a file as startup removes the previous.
+
 <b>Changelog</b>
+
+<i>1.0.3</i>
+<ul>
+<li>Added the ability to set a file as a startup for a project</li>
+</ul>
 
 <i>1.0.2</i>
 <ul>

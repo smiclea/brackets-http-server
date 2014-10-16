@@ -1,7 +1,7 @@
 {
   "name": "brackets-http-server",
   "title": "Http Server for Brackets",
-  "version": "1.0.2",
+  "version": "1.0.3",
   "description": "Launches an http-server module (http://127.0.0.1:8989) at project root and opens the selected file in a new browser tab",
   "homepage": "https://github.com/smiclea/brackets-http-server",
   "author": "Sergiu Miclea <miclea.sergiu@gmail.com> (https://github.com/smiclea)",
