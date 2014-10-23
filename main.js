@@ -1,5 +1,5 @@
 /*jslint vars: true, plusplus: true, devel: true, nomen: true, regexp: true, indent: 4, maxerr: 50 */
-/*global define, $, brackets, window, log , Mustache, NodeConnection */
+/*global define, $, brackets */
 
 
 define(function (require, exports, module) {
@@ -11,20 +11,19 @@ define(function (require, exports, module) {
         ExtensionUtils = brackets.getModule("utils/ExtensionUtils"),
         NodeConnection = brackets.getModule("utils/NodeConnection"),
 		Menus = brackets.getModule("command/Menus"),
-		FileSystem = brackets.getModule("filesystem/FileSystem"),
-        ProjectManager = brackets.getModule("project/ProjectManager");
+        ProjectManager = brackets.getModule("project/ProjectManager"),
+		PreferencesManager = brackets.getModule("preferences/PreferencesManager");
     
     var PORT = '8989';
     var START_SHORTCUT = 'Ctrl-Alt-T';
 	var CONTEXT_MENU_SET = 'Set startup for HTTP Server';
 	var CONTEXT_MENU_REMOVE = 'Remove startup for HTTP Server';
-	var CONFIG_NAME = 'startup.config';
-	var CONFIG_EXP = /\$project\s*:\s*(.*)\s*;\s*\$startup\s*:\s*(.*)\s*/gm;
+	
+	var NAMESPACE = 'brackets-http-server';
 	
     var nodeConnection = new NodeConnection();
     var icon, rootPath;
 	var contextMenu = Menus.getContextMenu(Menus.ContextMenuIds.PROJECT_MENU);
-	var configProjects = [];
 	
     var connect = function () {
         var connectionPromise = nodeConnection.connect(true);
@@ -47,52 +46,28 @@ define(function (require, exports, module) {
         return loadPromise;
     };
     
-	var readConfig = function (callback) {
-		var configPath = ExtensionUtils.getModulePath(module) + CONFIG_NAME;
-		var match;
-
-		configProjects = [];
-
-		var file = FileSystem.getFileForPath(configPath);
-		file.read(function (error, data) {
-			if (error) {
-				console.error('[brackets-http-server] Error reading config file (' + configPath + '): ' + error);
-				return;
-			}
-
-			while ((match = CONFIG_EXP.exec(data)) !== null) {
-				configProjects.push({
-					project: match[1].trim(),
-					startup: match[2].trim()
-				});
-			}
-
-			if (callback) {
-				callback();
-			}
-		});
+	var getExtension = function (path) {
+		var ext = path.substr(path.lastIndexOf('.') + 1).toLowerCase();
+		return ext;
 	};
 	
     var openFile = function () {
-		readConfig(function () {
-			var root = ProjectManager.getProjectRoot().fullPath;
-			var file = ProjectManager.getSelectedItem().fullPath;
-			var path;
-			
-			$.each(configProjects, function (i, item) {
-				if (item.project === ProjectManager.getProjectRoot().name) {
-					file = item.startup;
-				}
-			});
-			
-			if (file.indexOf(root) > -1) {
-				path = 'http:/127.0.0.1:' + PORT + '/' + file.substr(root.length);
-			} else {
-				path = file;
-			}
-			
-			nodeConnection.domains['http-server'].open(path);
-		});
+		var projStartup = PreferencesManager.get(NAMESPACE + '.' + ProjectManager.getProjectRoot().name + '-startup');
+		var root = ProjectManager.getProjectRoot().fullPath;
+		var file = ProjectManager.getSelectedItem().fullPath;
+		var path;
+		
+		if (projStartup && getExtension(file) !== 'html' && getExtension(file) !== 'htm') {
+			file = projStartup;
+		}
+		
+		if (file.indexOf(root) > -1) {
+			path = 'http:/127.0.0.1:' + PORT + '/' + file.substr(root.length);
+		} else {
+			path = file;
+		}
+
+		nodeConnection.domains['http-server'].open(path);
     };
     
     var startServer = function () {
@@ -111,7 +86,7 @@ define(function (require, exports, module) {
             } else {
 				console.error('[brackets-http-server] Process start error. ', msg);
             }
-        }).done(function (msg) {
+        }).done(function () {
 			openFile();
 		});
     };
@@ -128,87 +103,26 @@ define(function (require, exports, module) {
 		});
 	};
 	
-	var writeConfig = function () {
-		var configPath = ExtensionUtils.getModulePath(module) + CONFIG_NAME;
-		var file = FileSystem.getFileForPath(configPath);
-		var i, data = '';
-		
-		for (i = 0; i < configProjects.length; i++) {
-			data += '$project: ' + configProjects[i].project + '; $startup: ' + configProjects[i].startup + '\n';
-		}
-		
-		file.write(data, function (error) {
-			if (error) {
-				console.error('[brackets-http-server] Error writing config file (' + configPath + '): ' + error);
-			}
-		});
-	};
-	
-	var setFileAsStartup = function () {
-		readConfig(function () {
-			var currentProject = ProjectManager.getProjectRoot().name;
-			var selFile = ProjectManager.getSelectedItem().fullPath;
-			var i, found;
-			
-			for (i = 0; i < configProjects.length; i++) {
-				if (configProjects[i].project === currentProject) {
-					configProjects[i].startup = selFile;
-					found = true;
-					break;
-				}
-			}
-			
-			if (!found) {
-				configProjects.push({
-					project: currentProject,
-					startup: selFile
-				});
-			}
-			
-			writeConfig();
-		});
-	};
-	
-	var removeFileAsStartup = function () {
-		readConfig(function () {
-			var currentProject = ProjectManager.getProjectRoot().name;
-			var selFile = ProjectManager.getSelectedItem().fullPath;
-			var i, found = -1;
-
-			for (i = 0; i < configProjects.length; i++) {
-				if (configProjects[i].project === currentProject && configProjects[i].startup === selFile) {
-					found = i;
-					break;
-				}
-			}
-
-			if (found >= 0) {
-				configProjects.splice(i, 1);
-				writeConfig();
-			}
-		});
-	};
-	
 	var addContextMenu = function () {
 		var SET_CMD = 'http_server_set_startup_cmd';
 		var REMOVE_CMD = 'http_server_remove_startup_cmd';
 		var divider, menuItem;
-
 		if (!CommandManager.get(SET_CMD)) {
 			CommandManager.register(CONTEXT_MENU_SET, SET_CMD, function () {
-				setFileAsStartup();
+				var selFile = ProjectManager.getSelectedItem().fullPath;
+				PreferencesManager.set(NAMESPACE + '.' + ProjectManager.getProjectRoot().name + '-startup', selFile);
 			});
 		}
 		
 		if (!CommandManager.get(REMOVE_CMD)) {
 			CommandManager.register(CONTEXT_MENU_REMOVE, REMOVE_CMD, function () {
-				removeFileAsStartup();
+				PreferencesManager.set(NAMESPACE + '.' + ProjectManager.getProjectRoot().name + '-startup', '');
 			});
 		}
 		
-		$(contextMenu).on("beforeContextMenuOpen", function (evt) {
+		$(contextMenu).on("beforeContextMenuOpen", function () {
 			var selectedItem = ProjectManager.getSelectedItem();
-			var extension = selectedItem.name.split('.')[selectedItem.name.split('.').length - 1].toLowerCase();
+			var extension = getExtension(selectedItem.name);
 			
 			if (menuItem) {
 				contextMenu.removeMenuItem(menuItem);
@@ -221,26 +135,17 @@ define(function (require, exports, module) {
 			}
 			
 			if (extension === 'htm' || extension === 'html') {
-				readConfig(function () {
-					var found, i;
-					
-					for (i = 0; i < configProjects.length; i++) {
-						if (configProjects[i].project === ProjectManager.getProjectRoot().name && configProjects[i].startup === selectedItem.fullPath) {
-							found = true;
-							break;
-						}
-					}
-					
-					if (found) {
-						contextMenu.addMenuItem(REMOVE_CMD, '', Menus.LAST, REMOVE_CMD);
-						menuItem = REMOVE_CMD;
-					} else {
-						contextMenu.addMenuItem(SET_CMD, '', Menus.LAST, SET_CMD);
-						menuItem = SET_CMD;
-					}
-					
-					divider = contextMenu.addMenuDivider(Menus.LAST);
-				});
+				var projStartup = PreferencesManager.get(NAMESPACE + '.' + ProjectManager.getProjectRoot().name + '-startup');
+				
+				divider = contextMenu.addMenuDivider(Menus.LAST);
+				
+				if (projStartup === selectedItem.fullPath) {
+					contextMenu.addMenuItem(REMOVE_CMD, '', Menus.LAST, REMOVE_CMD);
+					menuItem = REMOVE_CMD;
+				} else {
+					contextMenu.addMenuItem(SET_CMD, '', Menus.LAST, SET_CMD);
+					menuItem = SET_CMD;
+				}
 			}
 		});
 	};

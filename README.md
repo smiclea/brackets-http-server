@@ -11,6 +11,12 @@ You can now also set a html file as a startup for a project, just right click th
 
 <b>Changelog</b>
 
+<i>1.0.4</i>
+<ul>
+<li>If the selected file is HTML, that file will open instead of the default file for the project</li>
+<li>Set the preferences regarding startup file for each projetc in Brackets preferences file</li>
+</ul>
+
 <i>1.0.3</i>
 <ul>
 <li>Added the ability to set a file as a startup for a project</li>
