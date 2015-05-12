@@ -14,6 +14,7 @@ You can now also set a html file as a startup for a project, just right click th
 <i>1.0.5</i>
 <ul>
 <li>Fixed: HTTP server dies and clicking the server button doesn't restart it</li>
+<li>Fixed: Handle space in module path</li>
 </ul>
 
 <i>1.0.4</i>
