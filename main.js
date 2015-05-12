@@ -73,10 +73,10 @@ define(function (require, exports, module) {
     var startServer = function () {
         var newRootPath = ProjectManager.getProjectRoot().fullPath;
         
-        if (rootPath && newRootPath === rootPath) {
-            openFile();
-            return;
-        }
+        //if (rootPath && newRootPath === rootPath) {
+          //  openFile();
+            //return;
+        //}
         
         rootPath = newRootPath;
         
