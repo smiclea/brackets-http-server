@@ -80,7 +80,8 @@ define(function (require, exports, module) {
         
         rootPath = newRootPath;
         
-        nodeConnection.domains['http-server'].start(rootPath, PORT, ExtensionUtils.getModulePath(module)).fail(function (msg) {
+        var modPath = ExtensionUtils.getModulePath(module).replace(/ /g, "\\ ");
+        nodeConnection.domains['http-server'].start(rootPath, PORT, modPath).fail(function (msg) {
             if (msg === 'success') {
                 openFile();
             } else {
