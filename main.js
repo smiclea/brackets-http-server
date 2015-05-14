@@ -20,10 +20,12 @@ define(function (require, exports, module) {
 	var CONTEXT_MENU_REMOVE = 'Remove startup for HTTP Server';
 	
 	var NAMESPACE = 'brackets-http-server';
-	
+	var SET_CMD = 'http_server_set_startup_cmd';
+	var REMOVE_CMD = 'http_server_remove_startup_cmd';
     var nodeConnection = new NodeConnection();
     var icon, rootPath;
 	var contextMenu = Menus.getContextMenu(Menus.ContextMenuIds.PROJECT_MENU);
+	var workingContextMenu = Menus.getContextMenu(Menus.ContextMenuIds.WORKING_SET_CONTEXT_MENU);
 	
     var connect = function () {
         var connectionPromise = nodeConnection.connect(true);
@@ -53,8 +55,8 @@ define(function (require, exports, module) {
 	
     var openFile = function () {
 		var projStartup = PreferencesManager.get(NAMESPACE + '.' + ProjectManager.getProjectRoot().name + '-startup');
-		var root = ProjectManager.getProjectRoot().fullPath.replace(/ /g, "\\ ");
-		var file = ProjectManager.getSelectedItem().fullPath.replace(/ /g, "\\ ");
+		var root = ProjectManager.getProjectRoot().fullPath;
+		var file = ProjectManager.getSelectedItem().fullPath;
 		var path;
 		
 		if (projStartup && getExtension(file) !== 'html' && getExtension(file) !== 'htm') {
@@ -71,7 +73,7 @@ define(function (require, exports, module) {
     };
     
     var startServer = function () {
-		var modPath = ExtensionUtils.getModulePath(module).replace(/ /g, "\\ ");
+		var modPath = ExtensionUtils.getModulePath(module);
         nodeConnection.domains['http-server'].start(ProjectManager.getProjectRoot().fullPath, PORT,  modPath).fail(function (msg) {
             if (msg === 'success') {
                 openFile();
@@ -95,10 +97,38 @@ define(function (require, exports, module) {
 		});
 	};
 	
+	var divider, menuItem;
+	
+	var onBeforeContextMenuOpen = function (menu) {
+		var selectedItem = ProjectManager.getSelectedItem();
+		var extension = getExtension(selectedItem.name);
+		
+		if (menuItem) {
+			menu.removeMenuItem(menuItem);
+			menuItem = null;
+		}
+
+		if (divider) {
+			menu.removeMenuDivider(divider.id);
+			divider = null;
+		}
+
+		if (extension === 'htm' || extension === 'html') {
+			var projStartup = PreferencesManager.get(NAMESPACE + '.' + ProjectManager.getProjectRoot().name + '-startup');
+
+			divider = menu.addMenuDivider(Menus.LAST);
+
+			if (projStartup === selectedItem.fullPath) {
+				menu.addMenuItem(REMOVE_CMD, '', Menus.LAST, REMOVE_CMD);
+				menuItem = REMOVE_CMD;
+			} else {
+				menu.addMenuItem(SET_CMD, '', Menus.LAST, SET_CMD);
+				menuItem = SET_CMD;
+			}
+		}
+	};
+	
 	var addContextMenu = function () {
-		var SET_CMD = 'http_server_set_startup_cmd';
-		var REMOVE_CMD = 'http_server_remove_startup_cmd';
-		var divider, menuItem;
 		if (!CommandManager.get(SET_CMD)) {
 			CommandManager.register(CONTEXT_MENU_SET, SET_CMD, function () {
 				var selFile = ProjectManager.getSelectedItem().fullPath;
@@ -112,34 +142,8 @@ define(function (require, exports, module) {
 			});
 		}
 		
-		$(contextMenu).on("beforeContextMenuOpen", function () {
-			var selectedItem = ProjectManager.getSelectedItem();
-			var extension = getExtension(selectedItem.name);
-			
-			if (menuItem) {
-				contextMenu.removeMenuItem(menuItem);
-				menuItem = null;
-			}
-			
-			if (divider) {
-				contextMenu.removeMenuDivider(divider.id);
-				divider = null;
-			}
-			
-			if (extension === 'htm' || extension === 'html') {
-				var projStartup = PreferencesManager.get(NAMESPACE + '.' + ProjectManager.getProjectRoot().name + '-startup');
-				
-				divider = contextMenu.addMenuDivider(Menus.LAST);
-				
-				if (projStartup === selectedItem.fullPath) {
-					contextMenu.addMenuItem(REMOVE_CMD, '', Menus.LAST, REMOVE_CMD);
-					menuItem = REMOVE_CMD;
-				} else {
-					contextMenu.addMenuItem(SET_CMD, '', Menus.LAST, SET_CMD);
-					menuItem = SET_CMD;
-				}
-			}
-		});
+		$(contextMenu).on("beforeContextMenuOpen", onBeforeContextMenuOpen.bind(this, contextMenu));
+		//$(workingContextMenu).on("beforeContextMenuOpen", onBeforeContextMenuOpen.bind(this, workingContextMenu));
 	};
 	
     AppInit.appReady(function () {

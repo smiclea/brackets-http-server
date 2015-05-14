@@ -22,7 +22,7 @@
     
     function start(path, port, rootPath, callback) {
         var exec = require('child_process').exec,
-            cmd = rootPath + 'node/node_modules/.bin/http-server -c-1 -p ' + port + ' ' + path,
+            cmd = rootPath + 'node/node_modules/.bin/http-server -c-1 -p ' + port + ' ' + '"' + path + '"',
             output = '';
 
 		killServerProcess(function () {
