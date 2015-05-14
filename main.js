@@ -53,8 +53,8 @@ define(function (require, exports, module) {
 	
     var openFile = function () {
 		var projStartup = PreferencesManager.get(NAMESPACE + '.' + ProjectManager.getProjectRoot().name + '-startup');
-		var root = ProjectManager.getProjectRoot().fullPath;
-		var file = ProjectManager.getSelectedItem().fullPath;
+		var root = ProjectManager.getProjectRoot().fullPath.replace(/ /g, "\\ ");
+		var file = ProjectManager.getSelectedItem().fullPath.replace(/ /g, "\\ ");
 		var path;
 		
 		if (projStartup && getExtension(file) !== 'html' && getExtension(file) !== 'htm') {
@@ -62,7 +62,7 @@ define(function (require, exports, module) {
 		}
 		
 		if (file.indexOf(root) > -1) {
-			path = 'http:/127.0.0.1:' + PORT + '/' + file.substr(root.length);
+			path = 'http://127.0.0.1:' + PORT + '/' + file.substr(root.length);
 		} else {
 			path = file;
 		}
@@ -71,17 +71,8 @@ define(function (require, exports, module) {
     };
     
     var startServer = function () {
-        var newRootPath = ProjectManager.getProjectRoot().fullPath;
-        
-        //if (rootPath && newRootPath === rootPath) {
-          //  openFile();
-            //return;
-        //}
-        
-        rootPath = newRootPath;
-        
-        var modPath = ExtensionUtils.getModulePath(module).replace(/ /g, "\\ ");
-        nodeConnection.domains['http-server'].start(rootPath, PORT, modPath).fail(function (msg) {
+		var modPath = ExtensionUtils.getModulePath(module).replace(/ /g, "\\ ");
+        nodeConnection.domains['http-server'].start(ProjectManager.getProjectRoot().fullPath, PORT,  modPath).fail(function (msg) {
             if (msg === 'success') {
                 openFile();
             } else {
